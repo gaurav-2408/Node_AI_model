@@ -1,0 +1,27 @@
+{
+  "name": "node_ai_model",
+  "version": "1.0.0",
+  "description": "integrate node with AI",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gaurav-2408/Node-AI-model.git"
+  },
+  "keywords": [
+    "AI",
+    "model",
+    "NodeJs"
+  ],
+  "author": "Gaurav Jain",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gaurav-2408/Node-AI-model/issues"
+  },
+  "homepage": "https://github.com/gaurav-2408/Node-AI-model#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
