@@ -1,9 +1,19 @@
 import  { ChatGoogleGenerativeAI }  from "@langchain/google-genai";
 import express from "express";
 import dotenv from 'dotenv';
-import { getData } from "./controller/dynamodb-controller.js";
+import  {getTable} from "./controller/dynamodb-controller.js";
+import AWS from 'aws-sdk';
+//import { getTable } from "./config.js";
 
 dotenv.config();
+
+//AWS
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
+
 console.log("API key val: ", process.env.GOOGLE_API_KEY)
 const model = new ChatGoogleGenerativeAI({
     model: "gemini-pro",
@@ -25,14 +35,24 @@ app.post('/api/prompts', async(req, res) => {
   }
 })
 
-app.get('/api/getdata', getData)
+app.get('/api/getdata/:tableName', async (req, res) => {
+  const { tableName } = req.params; 
+  try {
+    const tableInfo = await getTable(tableName); // Call the function properly
+    res.status(200).json(tableInfo);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+    console.error(error);
+  }
+});
+
 
 
 async function generateResponse(prompt) {
   try {
     const response = await model.invoke(prompt)
     console.log(response.content)
-    //return response.content
+    return response.content
   } catch (error) {
     console.error(error);
     return error.message
