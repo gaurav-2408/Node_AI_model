@@ -2,17 +2,19 @@ import AWS from 'aws-sdk';
 
 // Set AWS region
 AWS.config.update({ region: process.env.AWS_REGION || 'us-west-2' });
-const credentials = new AWS.SharedIniFileCredentials({ profile: 'OM_gen_AI_AWS' });
+const credentials = new AWS.SharedIniFileCredentials({ profile: '562131568493_Dish-AwsSSO-PowerUserAccess' });
 AWS.config.credentials = credentials;
 
 // Create DynamoDB client
 const ddb = new AWS.DynamoDB.DocumentClient(); // Use DocumentClient for easier JSON handling
 
-export async function getTable(tableName) {
+export async function getTable(tableName) { //use to get whole table data
   const dynamodb = new AWS.DynamoDB(); // Use raw DynamoDB for table description
   console.log("dynamo db from controller:", dynamodb)
   const params = { TableName: tableName };
-  return await dynamodb.describeTable(params).promise();
+
+  const tableData = await scanTable(tableName)
+  return tableData
 }
 
 export async function queryTable(tableName, keyConditionExpression, expressionAttributes) {
