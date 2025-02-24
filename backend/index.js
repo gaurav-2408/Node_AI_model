@@ -1,7 +1,7 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import express from "express";
 import dotenv from "dotenv";
-import { getTable } from "./controller/dynamodb-controller.js";
+import { getTable, listTables } from "./controller/dynamodb-controller.js";
 import AWS from "aws-sdk";
 import cors from "cors";
 
@@ -50,6 +50,16 @@ app.post("/api/prompts/:tableName", async (req, res) => {
   }
 });
 
+app.get('/api/tables', async (req, res) => {
+  try {
+    const data = await listTables();
+    res.json(data);
+  } catch (error) {
+    console.error('Error listing tables:', error);
+    res.status(500).json({ error: 'Failed to fetch tables' });
+  }
+});
+
 app.get('/api/getdata/:tableName', async (req, res) => {
   const { tableName } = req.params; 
   try {
@@ -60,7 +70,6 @@ app.get('/api/getdata/:tableName', async (req, res) => {
     console.error(error);
   }
 });
-
 
 // Function to call the model
 async function generateResponse(prompt) {

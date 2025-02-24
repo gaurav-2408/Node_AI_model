@@ -8,6 +8,9 @@ AWS.config.credentials = credentials;
 // Create DynamoDB client
 const ddb = new AWS.DynamoDB.DocumentClient(); // Use DocumentClient for easier JSON handling
 
+
+
+/**Only Tables related functions */
 export async function getTable(tableName) { //use to get whole table data
   const dynamodb = new AWS.DynamoDB(); // Use raw DynamoDB for table description
   //console.log("dynamo db from controller:", dynamodb)
@@ -58,3 +61,17 @@ export async function deleteItem(tableName, key) {
   const params = { TableName: tableName, Key: key };
   return await ddb.delete(params).promise();
 }
+
+/**Only List of Tables related functions */
+export async function listTables() {
+  try {
+    const dynamodb = new AWS.DynamoDB();
+    const data = await dynamodb.listTables().promise();
+    return data;
+  } catch (error) {
+    console.error('Error in listTables:', error);
+    throw error;
+  }
+}
+
+
