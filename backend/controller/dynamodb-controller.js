@@ -6,8 +6,8 @@ const credentials = new AWS.SharedIniFileCredentials({ profile: '562131568493_Di
 AWS.config.credentials = credentials;
 
 // Create DynamoDB client
-const ddb = new AWS.DynamoDB.DocumentClient(); // Use DocumentClient for easier JSON handling
-
+const dynamoDB = new AWS.DynamoDB();
+const ddb = new AWS.DynamoDB.DocumentClient();
 
 
 /**Only Tables related functions */
@@ -65,8 +65,9 @@ export async function deleteItem(tableName, key) {
 /**Only List of Tables related functions */
 export async function listTables() {
   try {
-    const dynamodb = new AWS.DynamoDB();
-    const data = await dynamodb.listTables().promise();
+    console.log('Fetching tables list...');
+    const data = await dynamoDB.listTables().promise();
+    console.log('Tables fetched successfully:', data);
     return data;
   } catch (error) {
     console.error('Error in listTables:', error);

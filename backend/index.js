@@ -2,18 +2,9 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import express from "express";
 import dotenv from "dotenv";
 import { getTable, listTables } from "./controller/dynamodb-controller.js";
-import AWS from "aws-sdk";
 import cors from "cors";
 
 dotenv.config();
-
-// AWS Configuration
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  sessionToken: process.env.AWS_SESSION_TOKEN,
-  region: process.env.AWS_REGION,
-});
 
 // Google API Model Initialization
 const model = new ChatGoogleGenerativeAI({
