@@ -3,6 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { getTable } from "./controller/dynamodb-controller.js";
 import AWS from "aws-sdk";
+import cors from "cors";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ const model = new ChatGoogleGenerativeAI({
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 // Route to handle prompts
 app.post("/api/prompts/:tableName", async (req, res) => {
@@ -74,5 +76,5 @@ async function generateResponse(prompt) {
 
 // Start the server
 app.listen(4000, () => {
-  console.log("SERVER RUNNING ON PORT:4000");
+  console.log("SERVER RUNNING ON PORT:4000, grj chamge");
 });

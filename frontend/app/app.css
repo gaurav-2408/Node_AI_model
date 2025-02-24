@@ -5,11 +5,26 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+@layer base {
+  html,
+  body {
+    @apply bg-white dark:bg-gray-950 min-h-screen;
   }
 }
+
+@layer utilities {
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+    }
+  }
+}
+
+/* Since you're using Tailwind, we can replace the .container class with Tailwind's built-in container utilities */
+/* Remove this if you're using Tailwind's container:
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+*/

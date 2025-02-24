@@ -10,7 +10,7 @@ const ddb = new AWS.DynamoDB.DocumentClient(); // Use DocumentClient for easier 
 
 export async function getTable(tableName) { //use to get whole table data
   const dynamodb = new AWS.DynamoDB(); // Use raw DynamoDB for table description
-  console.log("dynamo db from controller:", dynamodb)
+  //console.log("dynamo db from controller:", dynamodb)
   const params = { TableName: tableName };
 
   const tableData = await scanTable(tableName)
@@ -27,8 +27,16 @@ export async function queryTable(tableName, keyConditionExpression, expressionAt
 }
 
 export async function scanTable(tableName) {
-  const params = { TableName: tableName };
-  return await ddb.scan(params).promise();
+  try {
+    const params = { TableName: tableName };
+    console.log(`Scanning table with params:`, params);
+    const result = await ddb.scan(params).promise();
+    console.log("result from scan table:")
+    return result;
+  } catch (error) {
+    console.error(`Error scanning table ${tableName}:`, error);
+    throw error;
+  }
 }
 
 export async function putItem(tableName, item) {
