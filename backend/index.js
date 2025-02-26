@@ -1,21 +1,18 @@
 // Add this line at the very top of your file, before any imports
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-import { HfInference } from '@huggingface/inference';
 import express from "express";
 import dotenv from "dotenv";
 import { getTable, listTables } from "./controller/dynamodb-controller.js";
 import cors from "cors";
-import axios from 'axios';
+import OpenAI from 'openai';
 
 dotenv.config();
 
-// Hugging Face Initialization with direct API call
-const HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/gpt2";
-const headers = {
-  'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-  'Content-Type': 'application/json'
-};
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // Add this to your .env file
+});
 
 const app = express();
 app.use(express.json());
@@ -27,7 +24,6 @@ const rateLimiter = {
   minTimeBetweenRequests: 1000,
 };
 
-// Update the generateResponse function to use direct API call
 async function generateResponse(prompt) {
   try {
     // Apply rate limiting
@@ -41,32 +37,25 @@ async function generateResponse(prompt) {
     
     rateLimiter.lastRequestTime = Date.now();
 
-    // Direct API call using axios
-    const response = await axios.post(
-      HUGGING_FACE_API_URL,
-      {
-        inputs: prompt,
-        parameters: {
-          max_length: 100,
-          temperature: 0.7,
-          return_full_text: false
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that analyzes data and answers questions about it."
+        },
+        {
+          role: "user",
+          content: prompt
         }
-      },
-      { headers }
-    );
+      ],
+      temperature: 0.7,
+      max_tokens: 500
+    });
 
-    if (!response.data || response.data.length === 0) {
-      throw new Error('No response generated');
-    }
-
-    return response.data[0].generated_text;
+    return completion.choices[0].message.content;
   } catch (error) {
     console.error('Generation error:', error);
-    if (error.response) {
-      return `API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
-    } else if (error.request) {
-      return 'Network error. Please check your connection.';
-    }
     return `Error: ${error.message}. Please try again.`;
   }
 }

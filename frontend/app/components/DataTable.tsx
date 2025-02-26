@@ -11,39 +11,35 @@ import {
   CircularProgress,
   TextField,
   Box,
-  IconButton,
-  Tooltip,
+  Button,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
   Stack,
-  Button,
   Card,
   Typography,
+  Chip,
+  Collapse,
+  Alert,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
+import { useTheme } from '../theme/ThemeContext';
 
-interface DataItem {
-  [key: string]: any;  // Dynamic fields
-}
-
-interface Filter {
-  column: string;
-  value: string;
-}
-
-interface DataTableProps {
-  tableName: string;
-}
-
-interface PromptSectionProps {
-  tableName: string;
-}
-
+// PromptSection component
 const PromptSection = ({ tableName }: PromptSectionProps) => {
+  const { mode } = useTheme();
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const exampleQuestions = [
+    "How many records are there in total?",
+    "What is the latest entry?",
+    "Can you summarize this data?",
+    "Show me any interesting patterns",
+  ];
 
   const handleSubmitPrompt = async () => {
     if (!prompt.trim()) return;
@@ -71,39 +67,99 @@ const PromptSection = ({ tableName }: PromptSectionProps) => {
   };
 
   return (
-    <Card sx={{ p: 2, mb: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Ask Questions About This Data
+    <Card 
+      sx={{ 
+        p: 3, 
+        mb: 3, 
+        backgroundColor: mode === 'dark' ? 'background.paper' : '#f8f9fa',
+      }}
+    >
+      <Typography variant="h5" gutterBottom color="primary">
+        Ask AI About Your Data
       </Typography>
-      <Stack direction="row" spacing={2} alignItems="flex-start">
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Ask any question about the data in {tableName}. Try these examples:
+      </Typography>
+      
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {exampleQuestions.map((question, index) => (
+          <Chip
+            key={index}
+            label={question}
+            onClick={() => setPrompt(question)}
+            sx={{ cursor: 'pointer' }}
+            color="primary"
+            variant="outlined"
+          />
+        ))}
+      </Box>
+
+      <Stack direction="column" spacing={2}>
         <TextField
           fullWidth
           multiline
-          rows={2}
+          rows={3}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ask a question about the data..."
+          placeholder="Type your question here..."
           variant="outlined"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: 'white'
+            }
+          }}
         />
-        <Button
-          variant="contained"
-          onClick={handleSubmitPrompt}
-          disabled={loading || !prompt.trim()}
-          sx={{ minWidth: '120px' }}
-        >
-          {loading ? <CircularProgress size={24} /> : 'Ask'}
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            onClick={handleSubmitPrompt}
+            disabled={loading || !prompt.trim()}
+            sx={{ minWidth: '150px' }}
+          >
+            {loading ? 'Thinking...' : 'Ask AI'}
+          </Button>
+        </Box>
       </Stack>
+
       {response && (
-        <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-          <Typography variant="body1">{response}</Typography>
+        <Box 
+          sx={{ 
+            mt: 3,
+            p: 2.5,
+            bgcolor: mode === 'dark' ? 'background.default' : 'white',
+            borderRadius: 1,
+            boxShadow: 1,
+            border: `1px solid ${mode === 'dark' ? '#333' : '#e0e0e0'}`
+          }}
+        >
+          <Typography variant="body1">
+            {response}
+          </Typography>
         </Box>
       )}
     </Card>
   );
 };
 
+interface DataItem {
+  [key: string]: any;  // Dynamic fields
+}
+
+interface Filter {
+  column: string;
+  value: string;
+}
+
+interface DataTableProps {
+  tableName: string;
+}
+
+interface PromptSectionProps {
+  tableName: string;
+}
+
 export const DataTable = ({ tableName }: DataTableProps) => {
+  const { toggleTheme, mode } = useTheme();
   const [data, setData] = useState<DataItem[]>([]);
   const [filteredData, setFilteredData] = useState<DataItem[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
@@ -241,31 +297,67 @@ export const DataTable = ({ tableName }: DataTableProps) => {
   );
 
   return (
-    <>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 3 
+      }}>
+        <Typography variant="h4" color="primary">
+          {tableName} Data Explorer
+        </Typography>
+        
+        <FormControlLabel
+          control={
+            <Switch
+              checked={mode === 'dark'}
+              onChange={toggleTheme}
+              color="primary"
+            />
+          }
+          label={mode === 'dark' ? 'Dark Mode' : 'Light Mode'}
+        />
+      </Box>
+
       <PromptSection tableName={tableName} />
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <Box sx={{ p: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+
+      <Paper 
+        sx={{ 
+          width: '100%', 
+          overflow: 'hidden', 
+          mb: 3,
+          bgcolor: mode === 'dark' ? 'background.paper' : 'background.paper',
+        }}
+      >
+        <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
             <TextField
               label="Search all columns"
               variant="outlined"
               size="small"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ minWidth: '250px' }}
             />
             <Button 
               onClick={() => setShowFilters(!showFilters)}
               variant="outlined"
-              size="small"
             >
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </Button>
           </Stack>
 
-          {showFilters && (
-            <Box sx={{ mb: 2 }}>
+          <Collapse in={showFilters}>
+            <Box sx={{ mt: 2 }}>
               {filters.map((filter, index) => (
-                <Stack key={index} direction="row" spacing={2} mb={1}>
+                <Stack 
+                  key={index} 
+                  direction="row" 
+                  spacing={2} 
+                  mb={1} 
+                  alignItems="center"
+                >
                   <FormControl size="small" sx={{ minWidth: 120 }}>
                     <InputLabel>Column</InputLabel>
                     <Select
@@ -285,83 +377,100 @@ export const DataTable = ({ tableName }: DataTableProps) => {
                     onChange={(e) => handleFilterChange(index, 'value', e.target.value)}
                   />
                   <Button 
-                    onClick={() => handleRemoveFilter(index)} 
+                    onClick={() => handleRemoveFilter(index)}
                     color="error"
                     size="small"
+                    variant="outlined"
                   >
-                    ✕
+                    Remove
                   </Button>
                 </Stack>
               ))}
               <Button
                 variant="outlined"
-                size="small"
                 onClick={handleAddFilter}
                 sx={{ mt: 1 }}
               >
                 Add Filter
               </Button>
             </Box>
-          )}
+          </Collapse>
         </Box>
 
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column}
-                    sx={{
-                      fontWeight: 'bold',
-                      backgroundColor: '#f5f5f5',
-                      whiteSpace: 'nowrap',
-                      padding: '16px 8px'
-                    }}
-                  >
-                    {column}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredData
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => (
-                  <TableRow 
-                    hover 
-                    key={index}
-                    sx={{ '&:nth-of-type(odd)': { backgroundColor: '#fafafa' } }}
-                  >
-                    {columns.map((column) => (
-                      <TableCell 
-                        key={`${index}-${column}`}
-                        sx={{ 
-                          whiteSpace: 'nowrap',
-                          maxWidth: '200px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          padding: '8px'
-                        }}
-                      >
-                        {formatValue(row[column])}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {loading ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress />
+            <Typography sx={{ mt: 2 }} color="text.secondary">
+              Loading data...
+            </Typography>
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ m: 2 }}>
+            {error}
+          </Alert>
+        ) : (
+          <TableContainer sx={{ maxHeight: 440 }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column}
+                      sx={{
+                        fontWeight: 'bold',
+                        backgroundColor: mode === 'dark' ? '#333' : '#f5f5f5',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {column}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredData
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row, index) => (
+                    <TableRow 
+                      hover 
+                      key={index}
+                      sx={{ 
+                        '&:nth-of-type(odd)': { 
+                          backgroundColor: mode === 'dark' ? '#1a1a1a' : '#fafafa' 
+                        }
+                      }}
+                    >
+                      {columns.map((column) => (
+                        <TableCell 
+                          key={`${index}-${column}`}
+                          sx={{ 
+                            whiteSpace: 'nowrap',
+                            maxWidth: '200px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {formatValue(row[column])}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        
         <TablePagination
-          rowsPerPageOptions={[10, 25, 50, 100]}
           component="div"
           count={filteredData.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[10, 25, 50, 100]}
+          sx={{ borderTop: '1px solid #e0e0e0' }}
         />
       </Paper>
-    </>
+    </Box>
   );
 };
