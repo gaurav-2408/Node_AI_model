@@ -19,6 +19,8 @@ import {
   InputLabel,
   Stack,
   Button,
+  Card,
+  Typography,
 } from '@mui/material';
 
 interface DataItem {
@@ -33,6 +35,73 @@ interface Filter {
 interface DataTableProps {
   tableName: string;
 }
+
+interface PromptSectionProps {
+  tableName: string;
+}
+
+const PromptSection = ({ tableName }: PromptSectionProps) => {
+  const [prompt, setPrompt] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmitPrompt = async () => {
+    if (!prompt.trim()) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:4000/api/prompts/${tableName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+      
+      if (!res.ok) throw new Error('Failed to get response');
+      
+      const data = await res.json();
+      setResponse(data.response);
+    } catch (error) {
+      console.error('Error:', error);
+      setResponse('Failed to get response. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card sx={{ p: 2, mb: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        Ask Questions About This Data
+      </Typography>
+      <Stack direction="row" spacing={2} alignItems="flex-start">
+        <TextField
+          fullWidth
+          multiline
+          rows={2}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Ask a question about the data..."
+          variant="outlined"
+        />
+        <Button
+          variant="contained"
+          onClick={handleSubmitPrompt}
+          disabled={loading || !prompt.trim()}
+          sx={{ minWidth: '120px' }}
+        >
+          {loading ? <CircularProgress size={24} /> : 'Ask'}
+        </Button>
+      </Stack>
+      {response && (
+        <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+          <Typography variant="body1">{response}</Typography>
+        </Box>
+      )}
+    </Card>
+  );
+};
 
 export const DataTable = ({ tableName }: DataTableProps) => {
   const [data, setData] = useState<DataItem[]>([]);
@@ -172,124 +241,127 @@ export const DataTable = ({ tableName }: DataTableProps) => {
   );
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <Box sx={{ p: 2 }}>
-        <Stack direction="row" spacing={2} alignItems="center" mb={2}>
-          <TextField
-            label="Search all columns"
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Button 
-            onClick={() => setShowFilters(!showFilters)}
-            variant="outlined"
-            size="small"
-          >
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </Button>
-        </Stack>
-
-        {showFilters && (
-          <Box sx={{ mb: 2 }}>
-            {filters.map((filter, index) => (
-              <Stack key={index} direction="row" spacing={2} mb={1}>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel>Column</InputLabel>
-                  <Select
-                    value={filter.column}
-                    label="Column"
-                    onChange={(e) => handleFilterChange(index, 'column', e.target.value)}
-                  >
-                    {columns.map(column => (
-                      <MenuItem key={column} value={column}>{column}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-                  size="small"
-                  label="Filter value"
-                  value={filter.value}
-                  onChange={(e) => handleFilterChange(index, 'value', e.target.value)}
-                />
-                <Button 
-                  onClick={() => handleRemoveFilter(index)} 
-                  color="error"
-                  size="small"
-                >
-                  ✕
-                </Button>
-              </Stack>
-            ))}
-            <Button
+    <>
+      <PromptSection tableName={tableName} />
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Box sx={{ p: 2 }}>
+          <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+            <TextField
+              label="Search all columns"
               variant="outlined"
               size="small"
-              onClick={handleAddFilter}
-              sx={{ mt: 1 }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button 
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outlined"
+              size="small"
             >
-              Add Filter
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
             </Button>
-          </Box>
-        )}
-      </Box>
+          </Stack>
 
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column}
-                  sx={{
-                    fontWeight: 'bold',
-                    backgroundColor: '#f5f5f5',
-                    whiteSpace: 'nowrap',
-                    padding: '16px 8px'
-                  }}
-                >
-                  {column}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredData
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <TableRow 
-                  hover 
-                  key={index}
-                  sx={{ '&:nth-of-type(odd)': { backgroundColor: '#fafafa' } }}
-                >
-                  {columns.map((column) => (
-                    <TableCell 
-                      key={`${index}-${column}`}
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        maxWidth: '200px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        padding: '8px'
-                      }}
+          {showFilters && (
+            <Box sx={{ mb: 2 }}>
+              {filters.map((filter, index) => (
+                <Stack key={index} direction="row" spacing={2} mb={1}>
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Column</InputLabel>
+                    <Select
+                      value={filter.column}
+                      label="Column"
+                      onChange={(e) => handleFilterChange(index, 'column', e.target.value)}
                     >
-                      {formatValue(row[column])}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                      {columns.map(column => (
+                        <MenuItem key={column} value={column}>{column}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    size="small"
+                    label="Filter value"
+                    value={filter.value}
+                    onChange={(e) => handleFilterChange(index, 'value', e.target.value)}
+                  />
+                  <Button 
+                    onClick={() => handleRemoveFilter(index)} 
+                    color="error"
+                    size="small"
+                  >
+                    ✕
+                  </Button>
+                </Stack>
               ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 50, 100]}
-        component="div"
-        count={filteredData.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Paper>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleAddFilter}
+                sx={{ mt: 1 }}
+              >
+                Add Filter
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table stickyHeader aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column}
+                    sx={{
+                      fontWeight: 'bold',
+                      backgroundColor: '#f5f5f5',
+                      whiteSpace: 'nowrap',
+                      padding: '16px 8px'
+                    }}
+                  >
+                    {column}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredData
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => (
+                  <TableRow 
+                    hover 
+                    key={index}
+                    sx={{ '&:nth-of-type(odd)': { backgroundColor: '#fafafa' } }}
+                  >
+                    {columns.map((column) => (
+                      <TableCell 
+                        key={`${index}-${column}`}
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          maxWidth: '200px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          padding: '8px'
+                        }}
+                      >
+                        {formatValue(row[column])}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 50, 100]}
+          component="div"
+          count={filteredData.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
+    </>
   );
 };
