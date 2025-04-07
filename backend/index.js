@@ -9,6 +9,8 @@ import OpenAI from 'openai';
 
 dotenv.config();
 
+// Remove the AWS configuration from here since it's in the controller
+
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Add this to your .env file

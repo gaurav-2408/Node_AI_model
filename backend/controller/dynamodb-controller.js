@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
 
-// Set AWS region
+// Set AWS region and credentials
 AWS.config.update({ region: process.env.AWS_REGION || 'us-west-2' });
 const credentials = new AWS.SharedIniFileCredentials({ profile: '562131568493_Dish-AwsSSO-PowerUserAccess' });
 AWS.config.credentials = credentials;
@@ -8,7 +8,6 @@ AWS.config.credentials = credentials;
 // Create DynamoDB client
 const dynamoDB = new AWS.DynamoDB();
 const ddb = new AWS.DynamoDB.DocumentClient();
-
 
 /**Only Tables related functions */
 export async function getTable(tableName) { //use to get whole table data
